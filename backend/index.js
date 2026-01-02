@@ -2,9 +2,9 @@ import express from "express";
 import http from "http";
 import cors from "cors";
 import dotenv from "dotenv";
-import { apiLimiter } from "./middlewares/rateLimiter";
-import connectDB from "./config/database";
-import errorHandler from "./middlewares/errorhandler";
+import { apiLimiter } from "./middlewares/rateLimiter.js";
+import connectDB from "./config/database.js";
+import errorHandler from "./middlewares/errorhandler.js";
 
 export const app = express();
 const server = http.createServer(app);
