@@ -5,8 +5,9 @@ import Order from "./orderModel.js";
 import Product from "./productModel.js";
 import Review from "./reviewModel.js";
 import Settings from "./settingsModel.js";
+import Gallery from "./galleryModel.js";
 import Subscriber from "./subscriberModel.js";
 import Newsletter from "./newsletterModel.js";
 import PromoCode from "./promoModel.js";
 
-export { Admin, Analytics, Event, Order, Product, Review, Settings, Subscriber, Newsletter, PromoCode };
+export { Admin, Analytics, Event, Order, Product, Review, Settings, Gallery, Subscriber, Newsletter, PromoCode };

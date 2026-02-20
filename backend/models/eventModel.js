@@ -11,15 +11,20 @@ const eventSchema = new Schema(
       type: String,
       required: true,
     },
+    category: {
+      type: String,
+      required: true
+    },
     image: {
       type: String,
     },
-    startDate: {
+    date: {
       type: Date,
       required: true,
     },
-    endDate: {
-      type: Date,
+    location: {
+      type: String,
+      default:"Nigeria",
       required: true,
     },
     isActive: {

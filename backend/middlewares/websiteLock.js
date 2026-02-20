@@ -3,11 +3,11 @@ import { Settings } from "../models/index.js";
 export const websiteLockMiddleware = async (req, res, next) => {
   try {
     // Bypass for admin routes and specific API endpoints
-    const isAdminRoute = req.path.startsWith("/api/admin");
+    const isAdminRoute = req.path.startsWith("/admin");
     const isPublicApi =
-      req.path.startsWith("/api/auth") ||
-      req.path === "/api/admin/login" ||
-      req.path.startsWith("/api/public");
+      req.path.startsWith("/auth") ||
+      req.path === "/admin/login" ||
+      req.path.startsWith("/public");
 
     if (isAdminRoute || isPublicApi) {
       return next();
@@ -19,7 +19,7 @@ export const websiteLockMiddleware = async (req, res, next) => {
     // If website is locked and not accessing lock-related endpoints
     if (settings.isWebsiteLocked && !req.path.includes("/lock-status")) {
       // Return lock status for API calls
-      if (req.path.startsWith("/api/")) {
+      if (req.path.startsWith("/")) {
         return res.status(423).json({
           success: false,
           message: "Website is currently locked for maintenance.",

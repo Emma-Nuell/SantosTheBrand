@@ -275,3 +275,55 @@ export const logoutAdmin = async (req, res) => {
     });
   }
 };
+
+// @desc    Get admin dashboard stats including featured/trending
+// @route   GET /api/admin/dashboard/stats
+// @access  Private (Admin only)
+const getAdminDashboardStats = async (req, res) => {
+  try {
+    const Product = require('../models/Product');
+    const Order = require('../models/Order');
+    const Subscriber = require('../models/Subscriber');
+
+    const [productStats, orderStats, subscriberStats] = await Promise.all([
+      Product.aggregate([
+        { $match: { isActive: true } },
+        {
+          $group: {
+            _id: null,
+            totalProducts: { $sum: 1 },
+            featuredCount: { $sum: { $cond: [{ $eq: ['$featured', true] }, 1, 0] } },
+            trendingCount: { $sum: { $cond: [{ $eq: ['$trending', true] }, 1, 0] } },
+            bothCount: { $sum: { $cond: [{ $and: [{ $eq: ['$featured', true] }, { $eq: ['$trending', true] }] }, 1, 0] } }
+          }
+        }
+      ]),
+      Order.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalOrders: { $sum: 1 },
+            pendingOrders: { $sum: { $cond: [{ $eq: ['$orderStatus', 'processing'] }, 1, 0] } },
+            totalRevenue: { $sum: '$totalAmount' }
+          }
+        }
+      ]),
+      Subscriber.countDocuments({ isActive: true })
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        products: productStats[0] || { totalProducts: 0, featuredCount: 0, trendingCount: 0, bothCount: 0 },
+        orders: orderStats[0] || { totalOrders: 0, pendingOrders: 0, totalRevenue: 0 },
+        subscribers: subscriberStats
+      }
+    });
+  } catch (error) {
+    console.error('Get admin dashboard stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch dashboard statistics.'
+    });
+  }
+};
