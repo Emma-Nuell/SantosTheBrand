@@ -3,8 +3,10 @@ import { motion } from 'framer-motion';
 import { ArrowUpRight, Calendar, MapPin } from 'lucide-react';
 // Correctly importing the data from your constants file
 import { EVENT_ENTRIES } from '../constants';
+import { useEvents } from '@/hooks/storeHooks';
 
 const EventsPage = () => {
+  const events = useEvents()
   return (
     <div className="min-h-screen bg-white pb-20">
       {/* Header - Dark & Dramatic */}
@@ -40,9 +42,9 @@ const EventsPage = () => {
       <div className="max-w-[1440px] mx-auto px-6 lg:px-12 -mt-10 relative z-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Mapping over the imported EVENT_ENTRIES */}
-          {EVENT_ENTRIES.map((event, index) => (
+          {events.data.map((event: any, index) => (
             <motion.div
-              key={event.id}
+              key={event._id}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -80,7 +82,7 @@ const EventsPage = () => {
                 </h2>
                 
                 <p className="text-slate-500 font-light text-sm mb-8 line-clamp-3 leading-relaxed">
-                  {event.subtitle}
+                  {event.content}
                 </p>
 
                 <div className="mt-auto relative inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary-950 group-hover:text-primary-700 transition-colors">

@@ -3,12 +3,15 @@ import { useParams, Link } from 'react-router-dom';
 import { PRODUCTS } from '../constants';
 import { Product } from '../types';
 import { Star, Minus, Plus, Truck, ShieldCheck } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import ProductGallery from '../components/ProductGallery';
 import ReviewSection from '../components/ReviewSection';
 import DynamicFitGuide from '../components/DynamicFitGuide';
 import ProductAnatomy from '../components/ProductAnatomy';
 import PageTransition from '../components/PageTransition';
+import { useProduct } from '@/hooks/storeHooks';
+import Loader from '@/components/Loader';
+import Error404 from './Error404';
 
 interface ProductDetailsProps {
   onAddToCart: (product: Product, quantity: number, size: string, color: string) => void;
@@ -17,16 +20,26 @@ interface ProductDetailsProps {
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({ onAddToCart, addToRecentlyViewed }) => {
   const { id } = useParams<{ id: string }>();
-  const product = PRODUCTS.find(p => p.id === id);
+  // const product = PRODUCTS.find(p => p.id === id);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
-
+  const {data: product, isLoading, error} = useProduct(id)
+  if (isLoading) {
+    return (
+      <AnimatePresence mode="wait">
+        <Loader />
+      </AnimatePresence>
+    );
+  }
+  if (error) {
+    return <Error404 />;
+  }
   useEffect(() => {
     if (product) {
       addToRecentlyViewed(product);
     }
-  }, [product?.id]);
+  }, [product?._id]);
 
   if (!product) {
     return <div className="min-h-screen flex items-center justify-center">Product not found.</div>;
@@ -77,10 +90,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ onAddToCart, addToRecen
 
               {/* Product Info */}
               <div className="md:sticky md:top-32 h-fit">
-                <h1 className="font-serif text-3xl md:text-4xl text-primary-950 font-medium mb-4">{product.name}</h1>
+                <h1 className="font-serif text-3xl md:text-4xl text-primary-950 font-medium mb-4">{product.title}</h1>
                 
                 <div className="flex items-center gap-4 mb-6">
-                  <span className="text-2xl font-light text-primary-900">${product.price.toLocaleString()}</span>
+                  <span className="text-2xl font-light text-primary-900">${product.basePrice.toLocaleString()}</span>
                   <div className="flex items-center text-yellow-500 text-sm">
                      {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 fill-current" />)}
                      <span className="text-slate-400 ml-2">({product.reviews?.length || 0} reviews)</span>

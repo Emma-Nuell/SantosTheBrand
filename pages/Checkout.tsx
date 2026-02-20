@@ -3,6 +3,7 @@ import { CartItem } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, CreditCard, Truck, Mail, Phone, Ticket, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useCreateOrder } from '@/hooks/orderHooks';
 
 interface CheckoutProps {
   cart: CartItem[];
@@ -20,6 +21,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart }) => {
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shipping = subtotal > 500 ? 0 : 25;
   const total = subtotal + shipping;
+  const createOrderMutation = useCreateOrder()
 
   const handleNext = () => {
     if (currentStep < 2) {
@@ -33,6 +35,28 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart }) => {
       }, 2000);
     }
   };
+
+
+
+  const handelSubmit = async (orderData: any) => {
+    if (paymentMethod === 'paystack') {
+      const order = await createOrderMutation.mutateAsync({
+        ...orderData,
+        paymentMethod: 'paystack',
+        total,
+        subtotal,
+        shipping,
+      })
+    } else if (paymentMethod === 'delivery') {
+      const order = await createOrderMutation.mutateAsync({
+        ...orderData,
+        paymentMethod: 'delivery',
+        total,
+        subtotal,
+        shipping,
+      })
+    }
+  }
 
   if (isCompleted) {
     return (

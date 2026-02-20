@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ZoomIn, Info, Camera, MapPin } from 'lucide-react';
 import GalleryItem from '../components/GalleryItem';
 import PageTransition from '../components/PageTransition';
+import { useGallery, useShowcase } from '@/hooks/storeHooks';
 
 // Tailored Gallery Data aligned with Events
 const GALLERY_ITEMS = [
@@ -85,6 +86,8 @@ const duplicatedImages = [...FILMSTRIP_IMAGES, ...FILMSTRIP_IMAGES];
 const GalleryPage = () => {
   const [selectedItem, setSelectedItem] = useState<typeof GALLERY_ITEMS[0] | null>(null);
   const [isTextureMode, setIsTextureMode] = useState(false);
+  const gallery = useGallery();
+  const showCase = useShowcase()
 
   return (
     <PageTransition>
@@ -129,9 +132,9 @@ const GalleryPage = () => {
         {/* --- MASONRY GRID --- */}
         <div className="max-w-[1440px] mx-auto px-6 lg:px-12 pb-32">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-[300px] md:auto-rows-[450px] gap-6 md:gap-10">
-            {GALLERY_ITEMS.map((item, index) => (
+            {gallery.data.map((item: any, index: number) => (
               <motion.div
-                key={item.id}
+                key={item._id}
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
@@ -139,7 +142,7 @@ const GalleryPage = () => {
                 className={`${item.span} relative group`}
               >
                 <GalleryItem
-                  layoutId={item.id}
+                  layoutId={item._id}
                   image={item.src}
                   title={item.title}
                   category={item.category}
@@ -177,14 +180,14 @@ const GalleryPage = () => {
             }}
             className="flex gap-4 pl-6 w-max"
           >
-            {duplicatedImages.map((src, i) => (
+            {showCase.data.map((item: any, i: number) => (
               <div
                 key={i}
                 // Reduced width and height (aspect-video changed to a tighter custom height)
                 className="w-[60vw] md:w-[450px] h-[250px] md:h-[300px] relative overflow-hidden group"
               >
                 <img 
-                  src={src} 
+                  src={item.src} 
                   alt="SANTOS Runway" 
                   className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-700 group-hover:scale-105" 
                 />

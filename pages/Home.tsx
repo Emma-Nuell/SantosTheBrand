@@ -1,13 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import Hero from '../components/Hero';
-import ProductCard from '../components/ProductCard';
-import GalleryPreview from '../components/GalleryPreview';
-import Loader from '../components/Loader';
-import { PRODUCTS } from '../constants';
-import { Product } from '../types';
-import { ArrowRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import Hero from "../components/Hero";
+import ProductCard from "../components/ProductCard";
+import GalleryPreview from "../components/GalleryPreview";
+import Loader from "../components/Loader";
+import { PRODUCTS } from "../constants";
+import { Product } from "../types";
+import { ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  useWebsiteStatus,
+  useFeatured,
+  useTrending,
+  useGallery,
+  useShowcase,
+  useEvents,
+} from "@/hooks/storeHooks";
+import WebsiteLock from "@/components/WebsiteLock";
+import Error404 from "./Error404";
 
 interface HomeProps {
   onAddToCart: (product: Product) => void;
@@ -15,26 +25,58 @@ interface HomeProps {
   onToggleWishlist: (product: Product) => void;
 }
 
-const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist }) => {
-  const [loading, setLoading] = useState(true);
+const Home: React.FC<HomeProps> = ({
+  onAddToCart,
+  wishlistIds,
+  onToggleWishlist,
+}) => {
+  // const [loading, setLoading] = useState(true);
   const featuredProducts = PRODUCTS.slice(0, 3);
   const trendingProducts = PRODUCTS.slice(3, 6);
+  const websiteLock = useWebsiteStatus();
+  const featured = useFeatured();
+  const trending = useTrending();
+  const gallery = useGallery();
+  const isReady = featured.isSuccess && trending.isSuccess;
+  const showcase = useShowcase(isReady);
+  const events = useEvents(isReady);
 
-  useEffect(() => {
-    // Simulate loading time for entrance animation
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
+  const IsLoading =
+    websiteLock.isLoading ||
+    featured.isLoading ||
+    trending.isLoading ||
+    gallery.isLoading;
+  const IsError =
+    websiteLock.error || featured.error || trending.error || gallery.error;
+
+  if (IsLoading) {
+    return (
+      <AnimatePresence mode="wait">
+        <Loader />
+      </AnimatePresence>
+    );
+  }
+  if (IsError) {
+    return <Error404 />;
+  }
+
+  if (websiteLock.data.isLocked) {
+    return <WebsiteLock />;
+  }
+
+  // useEffect(() => {
+  //   // Simulate loading time for entrance animation
+  //   const timer = setTimeout(() => {
+  //     setLoading(false);
+  //   }, 2000);
+  //   return () => clearTimeout(timer);
+  // }, []);
 
   return (
     <>
-      <AnimatePresence mode="wait">
-        {loading && <Loader />}
-      </AnimatePresence>
+     
 
-      {!loading && (
+      
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -47,7 +89,7 @@ const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
             <div className="max-w-[1440px] mx-auto px-6 lg:px-12">
               <div className="flex justify-between items-end mb-16">
                 <div>
-                  <motion.span 
+                  <motion.span
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
@@ -55,7 +97,7 @@ const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
                   >
                     Highlights
                   </motion.span>
-                  <motion.h2 
+                  <motion.h2
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
@@ -65,26 +107,29 @@ const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
                     Featured Selections
                   </motion.h2>
                 </div>
-                <Link to="/shop" className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-primary-600 transition-colors">
-                    View All <ArrowRight className="w-4 h-4" />
+                <Link
+                  to="/shop"
+                  className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-primary-600 transition-colors"
+                >
+                  View All <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
-              
-              <motion.div 
+
+              <motion.div
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-100px" }}
                 variants={{
-                  visible: { transition: { staggerChildren: 0.15 } }
+                  visible: { transition: { staggerChildren: 0.15 } },
                 }}
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16"
               >
-                {featuredProducts.map((product) => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={product} 
+                {featured.data.map((product: any) => (
+                  <ProductCard
+                    key={product._id}
+                    product={product}
                     onAddToCart={onAddToCart}
-                    isWishlisted={wishlistIds.includes(product.id)}
+                    isWishlisted={wishlistIds.includes(product._id)}
                     onToggleWishlist={onToggleWishlist}
                   />
                 ))}
@@ -92,16 +137,19 @@ const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
             </div>
           </section>
 
-          <GalleryPreview />
+          <GalleryPreview galleryProducts: any = {gallery.data} />
 
           {/* Cinematic Quote */}
           <section className="relative py-40 bg-white overflow-hidden flex items-center justify-center">
             <div className="max-w-4xl px-6 text-center z-10">
-                <p className="text-primary-500 font-bold tracking-widest text-xs uppercase mb-8">Philosophy</p>
-                <h2 className="font-serif text-4xl md:text-6xl text-primary-950 leading-tight mb-8">
-                    "True elegance is not just about being noticed, it’s about being remembered."
-                </h2>
-                <div className="w-24 h-[1px] bg-gray-300 mx-auto" />
+              <p className="text-primary-500 font-bold tracking-widest text-xs uppercase mb-8">
+                Philosophy
+              </p>
+              <h2 className="font-serif text-4xl md:text-6xl text-primary-950 leading-tight mb-8">
+                "True elegance is not just about being noticed, it’s about being
+                remembered."
+              </h2>
+              <div className="w-24 h-[1px] bg-gray-300 mx-auto" />
             </div>
           </section>
 
@@ -109,38 +157,43 @@ const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
           <section className="py-32 bg-white border-t border-gray-100">
             <div className="max-w-[1440px] mx-auto px-6 lg:px-12">
               <div className="text-center mb-20">
-                <h2 className="font-serif text-4xl md:text-5xl text-primary-950">Trending Now</h2>
+                <h2 className="font-serif text-4xl md:text-5xl text-primary-950">
+                  Trending Now
+                </h2>
               </div>
-              
-              <motion.div 
+
+              <motion.div
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-100px" }}
                 variants={{
-                  visible: { transition: { staggerChildren: 0.15 } }
+                  visible: { transition: { staggerChildren: 0.15 } },
                 }}
                 className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-16"
               >
-                {trendingProducts.map((product) => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={product} 
-                    onAddToCart={onAddToCart} 
-                    isWishlisted={wishlistIds.includes(product.id)}
+                {trending.data.map((product: any) => (
+                  <ProductCard
+                    key={product._id}
+                    product={product}
+                    onAddToCart={onAddToCart}
+                    isWishlisted={wishlistIds.includes(product._id)}
                     onToggleWishlist={onToggleWishlist}
                   />
                 ))}
               </motion.div>
 
               <div className="mt-20 text-center">
-                <Link to="/shop" className="inline-block px-12 py-4 bg-primary-950 text-white text-xs font-bold uppercase tracking-widest hover:bg-primary-900 transition-colors">
+                <Link
+                  to="/shop"
+                  className="inline-block px-12 py-4 bg-primary-950 text-white text-xs font-bold uppercase tracking-widest hover:bg-primary-900 transition-colors"
+                >
                   Shop All Products
                 </Link>
               </div>
             </div>
           </section>
         </motion.div>
-      )}
+      
     </>
   );
 };

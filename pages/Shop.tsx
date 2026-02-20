@@ -3,6 +3,7 @@ import ProductCard from '../components/ProductCard';
 import { PRODUCTS, CATEGORIES } from '../constants';
 import { Product, SortOption } from '../types';
 import { Filter, ChevronDown } from 'lucide-react';
+import { useProducts } from '@/hooks/storeHooks';
 
 interface ShopProps {
   onAddToCart: (product: Product) => void;
@@ -15,22 +16,23 @@ const Shop: React.FC<ShopProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
   const [sortBy, setSortBy] = useState<SortOption>('featured');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const products = useProducts();
 
   const filteredProducts = useMemo(() => {
-    let result = [...PRODUCTS];
+    let result = [...products.data];
 
     if (selectedCategory !== "All") {
       result = result.filter(p => p.category === selectedCategory);
     }
 
-    result = result.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
+    result = result.filter(p => p.basePrice >= priceRange[0] && p.price <= priceRange[1]);
 
     switch (sortBy) {
       case 'price-asc':
-        result.sort((a, b) => a.price - b.price);
+        result.sort((a, b) => a.basePrice - b.basePrice);
         break;
       case 'price-desc':
-        result.sort((a, b) => b.price - a.price);
+        result.sort((a, b) => b.basePrice - a.basePrice);
         break;
       case 'newest':
         // Mock sorting by new
@@ -125,10 +127,10 @@ const Shop: React.FC<ShopProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
                 {filteredProducts.map(product => (
                   <ProductCard 
-                    key={product.id} 
+                    key={product._id} 
                     product={product} 
                     onAddToCart={onAddToCart}
-                    isWishlisted={wishlistIds.includes(product.id)}
+                    isWishlisted={wishlistIds.includes(product._id)}
                     onToggleWishlist={onToggleWishlist}
                   />
                 ))}
