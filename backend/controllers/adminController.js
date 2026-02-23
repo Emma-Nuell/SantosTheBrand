@@ -1,6 +1,60 @@
 import { generateToken } from "../utils/generateToken.js";
 import { Admin } from "../models/index.js";
 
+
+
+// @desc    Admin signup (self-registration)
+// @route   POST /api/admins/signup
+// @access  Public (but might require special invite code)
+export const signupAdmin = async (req, res) => {
+  try {
+    const { email, password, inviteCode } = req.body;
+
+    // Optional: Check invite code if you want to restrict signups
+    if (process.env.INVITE_CODE && inviteCode !== process.env.INVITE_CODE) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid invite code",
+      });
+    }
+
+    // Check if admin already exists
+    const existingAdmin = await Admin.findOne({ email });
+    if (existingAdmin) {
+      return res.status(400).json({
+        success: false,
+        message: "Admin with this email already exists",
+      });
+    }
+
+    // Create new admin (always as regular admin for public signup)
+    const admin = await Admin.create({
+      email,
+      password,
+      role: "superadmin", 
+    });
+
+    // Generate JWT token
+    const token = generateToken(admin._id, admin.role);
+
+    res.status(201).json({
+      success: true,
+      message: "Admin account created successfully",
+      data: {
+        admin,
+        token,
+      },
+    });
+  } catch (error) {
+    console.error('Signup admin error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating admin account',
+      error: error.message
+    });
+  }
+};
+
 // @desc    Login admin
 // @route   POST /api/admin/login
 // @access  Public

@@ -13,18 +13,18 @@ const eventSchema = new Schema(
     },
     category: {
       type: String,
-      required: true
+      required: true,
     },
     image: {
       type: String,
     },
     date: {
-      type: Date,
+      type: String,
       required: true,
     },
     location: {
       type: String,
-      default:"Nigeria",
+      default: "Nigeria",
       required: true,
     },
     isActive: {
@@ -40,7 +40,7 @@ const eventSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Index for active events within date range

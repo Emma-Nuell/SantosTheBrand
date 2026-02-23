@@ -1,11 +1,12 @@
 import express from "express";
 const router = express.Router();
 
-import { loginAdmin, getAdminProfile, createAdmin, getAllAdmins, updateAdminStatus, changePassword, logoutAdmin } from "../controllers/adminController.js";
+import { loginAdmin, getAdminProfile, createAdmin, getAllAdmins, updateAdminStatus, changePassword, logoutAdmin, signupAdmin } from "../controllers/adminController.js";
 import { authenticateAdmin, authorizeRoles } from "../middlewares/authMiddleware.js";
 
 // Public routes
 router.post('/login', loginAdmin);
+router.post('/signup', signupAdmin);
 
 // Protected routes (require authentication)
 router.use(authenticateAdmin);

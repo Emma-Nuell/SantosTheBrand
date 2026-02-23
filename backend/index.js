@@ -15,6 +15,14 @@ import reviewRoute from "./routes/reviewRoute.js";
 import orderRoute from "./routes/orderRoute.js";
 import newsletterRoute from "./routes/newsletterRoute.js";
 import promoRoute from "./routes/promoRoute.js";
+import galleryRoute from "./routes/galleryRoutes.js"
+import eventRoute from "./routes/eventRoute.js";
+import showcaseRoute from "./routes/showcaseRoute.js";
+
+import dns from "node:dns";
+
+// Set the DNS servers to Google's public DNS
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 
 export const app = express();
@@ -47,6 +55,9 @@ app.use('/review', reviewRoute);
 app.use('/order', orderRoute);
 app.use('/newsletter', newsletterRoute);
 app.use('/promo', promoRoute);
+app.use('/gallery', galleryRoute);
+app.use('/event', eventRoute);
+app.use('/showcase', showcaseRoute);
 
 app.use(errorHandler);
 

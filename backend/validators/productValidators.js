@@ -9,9 +9,9 @@ export const validateCreateProduct = [
     .isLength({ min: 3, max: 200 })
     .withMessage("Title must be between 3 and 200 characters"),
 
-  body("price")
+  body("basePrice")
     .isFloat({ min: 0.01 })
-    .withMessage("Price must be a positive number"),
+    .withMessage("Base price must be a positive number"),
 
   body("images")
     .isArray({ min: 1 })

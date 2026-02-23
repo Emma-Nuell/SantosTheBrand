@@ -33,6 +33,7 @@ const gallerySchema = new mongoose.Schema(
         "row-span-1",
         "row-span-2",
         "col-span-1 row-span-2",
+        "col-span-1 row-span-1",
         "col-span-2 row-span-1",
         "col-span-2 row-span-2",
       ],
@@ -65,22 +66,20 @@ const gallerySchema = new mongoose.Schema(
 );
 
 // Ensure max 10 active images
-gallerySchema.pre("save", async function (next) {
-  if (this.isActive) {
+gallerySchema.pre("save", async function () {
+  // 1. Only run this check if isActive is true AND it was actually changed
+  if (this.isActive && this.isModified("isActive")) {
     const activeCount = await mongoose.model("Gallery").countDocuments({
       isActive: true,
       _id: { $ne: this._id },
     });
 
     if (activeCount >= 10) {
-      next(
-        new Error(
-          "Maximum 10 active gallery images allowed. Please deactivate an existing image first.",
-        ),
+      throw new Error(
+        "Maximum 10 active gallery images allowed. Please deactivate an existing image first.",
       );
     }
   }
-  next();
 });
 
 // Indexes

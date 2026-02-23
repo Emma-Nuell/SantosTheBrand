@@ -151,7 +151,6 @@ const productSchema = new Schema(
 productSchema.index({ category: 1, isActive: 1 });
 productSchema.index({ rating: -1 });
 productSchema.index({ tags: 1 });
-productSchema.index({ "variations.sku": 1 });
 productSchema.index({ featured: 1 });
 productSchema.index({ title: "text", description: "text" });
 

@@ -9,5 +9,6 @@ import Gallery from "./galleryModel.js";
 import Subscriber from "./subscriberModel.js";
 import Newsletter from "./newsletterModel.js";
 import PromoCode from "./promoModel.js";
+import Showcase from "./showcaseModel.js";
 
-export { Admin, Analytics, Event, Order, Product, Review, Settings, Gallery, Subscriber, Newsletter, PromoCode };
+export { Admin, Analytics, Event, Order, Product, Review, Settings, Gallery, Subscriber, Newsletter, PromoCode, Showcase };

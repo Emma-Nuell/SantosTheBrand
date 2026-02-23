@@ -1,5 +1,16 @@
 import { Review, Product } from "../models/index.js";
 
+const ids = [
+  "699b19e54e0daa52d4efcec6",
+  "699b1af2c2349b0548cabb32",
+  "699b1b629f1890794c46b862",
+  "699b1c22aa0ff1eb514c6ad9",
+  "699b1e577028bc49b54c7d4f",
+  "699b1ee546dc7ee94f4e7a87",
+  "699b1f5dc103583676437e80",
+  "699b2006ed1a24e7e78409e6",
+];
+
 // @desc    Get reviews for a product
 // @route   GET /api/products/:productId/reviews
 // @access  Public
