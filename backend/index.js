@@ -6,6 +6,7 @@ import { apiLimiter } from "./middlewares/rateLimiter.js";
 import connectDB from "./config/database.js";
 import errorHandler from "./middlewares/errorhandler.js";
 import {websiteLockMiddleware} from "./middlewares/websiteLock.js";
+import logger from "./middlewares/logger.js";
 
 
 import adminRoute from "./routes/adminRoute.js";
@@ -36,6 +37,7 @@ const port = process.env.PORT || 4000;
 app.use(apiLimiter);
 app.use(express.json());
 app.use(cors());
+app.use(logger)
 
 
 //api creation
@@ -43,9 +45,9 @@ app.get("/", (req, res) => {
   res.send("Express app is running");
 });
 
-connectDB();
+await connectDB();
 
-app.use(websiteLockMiddleware)
+// app.use(websiteLockMiddleware)
 
 // Routes
 app.use('/admin', adminRoute);

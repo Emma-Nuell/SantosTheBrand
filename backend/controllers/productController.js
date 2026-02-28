@@ -107,7 +107,7 @@ export const checkVariationStock = async (req, res) => {
   }
 };
 
-// Update the createProduct method to handle variations
+
 export const createProduct = async (req, res) => {
   try {
     const {
@@ -1120,7 +1120,6 @@ export const getFeaturedAndTrending = async (req, res) => {
       Product.find({
         ...baseFilter,
         trending: true,
-        rating: { $gte: 3.5 },
       })
         .sort({ rating: -1, reviewCount: -1, createdAt: -1 })
         .limit(Number(trendingLimit))
@@ -1132,9 +1131,6 @@ export const getFeaturedAndTrending = async (req, res) => {
       ...product,
       priceRange: product.priceRange,
       totalStock: product.totalStock,
-      availableOptions: product.hasVariations
-        ? product.getAvailableVariations()
-        : null,
     }));
 
     // Enhance trending products
@@ -1142,9 +1138,6 @@ export const getFeaturedAndTrending = async (req, res) => {
       ...product,
       priceRange: product.priceRange,
       totalStock: product.totalStock,
-      availableOptions: product.hasVariations
-        ? product.getAvailableVariations()
-        : null,
       trendingScore: (
         (product.rating * product.reviewCount) /
         (product.reviewCount + 1)

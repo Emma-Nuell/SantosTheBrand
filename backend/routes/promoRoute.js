@@ -18,7 +18,7 @@ router.post('/validate', validatePromoCode);
 
 // Admin routes
 router.use('/admin', authenticateAdmin);
-router.post('/admin', createPromoCode);
+router.post('/admin/create', createPromoCode);
 router.get('/admin', getAllPromoCodes);
 router.get('/admin/:id', getPromoCodeById);
 router.put('/admin/:id', updatePromoCode);

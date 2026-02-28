@@ -12,6 +12,6 @@ router.post('/subscribe', subscribeDuringLock);
 router.use('/admin', authenticateAdmin);
 router.get('/admin/settings', getWebsiteSettings);
 router.put('/admin/settings', updateWebsiteSettings);
-router.put('/admin/lock/toggle', toggleWebsiteLock);
+router.put('/admin/toggle', toggleWebsiteLock);
 
 export default router

@@ -22,8 +22,6 @@ const orderSchema = new Schema(
       street: { type: String, required: true },
       city: { type: String, required: true },
       state: { type: String, required: true },
-      country: { type: String, required: true },
-      postalCode: { type: String, required: true },
     },
     items: [
       {
@@ -36,6 +34,11 @@ const orderSchema = new Schema(
         price: { type: Number, required: true },
         quantity: { type: Number, required: true, min: 1 },
         image: { type: String },
+        variation: {
+          color: String,
+          size: String,
+          sku: String,
+        },
       },
     ],
     totalAmount: {
@@ -94,7 +97,7 @@ const orderSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Indexes for better query performance

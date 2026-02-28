@@ -4,7 +4,7 @@ import { createOrder, verifyPayment, paystackWebhook, getAllOrders, updateOrderS
 import { authenticateAdmin } from "../middlewares/authMiddleware.js";
 
 // Public routes
-router.post('/', createOrder);
+router.post('/create', createOrder);
 router.get('/:identifier', getOrder);
 router.post('/verify-payment', verifyPayment);
 

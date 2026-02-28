@@ -36,6 +36,7 @@ export const getGallery = async (req, res) => {
           location: img.location,
           span: img.span,
           description: img.description,
+          isActive: img.isActive,
         })),
         categories: categories.filter(Boolean),
         totalCount: gallery.length,

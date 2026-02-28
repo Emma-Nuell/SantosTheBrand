@@ -7,13 +7,6 @@ const variationSchema = new Schema({
       required: true,
       trim: true,
     },
-    code: {
-      type: String, // Hex color code or identifier
-      trim: true,
-    },
-    image: {
-      type: String, // Optional color-specific image
-    },
   },
   size: {
     type: String,

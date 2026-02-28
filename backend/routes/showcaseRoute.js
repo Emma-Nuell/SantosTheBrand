@@ -31,6 +31,6 @@ router.post("/admin/reorder", reorderSlides);
 router.get("/admin/stats/overview", getShowcaseStats);
 
 // Superadmin routes
-router.delete("/:id", deleteShowcaseSlide);
+router.delete("/admin/:id", deleteShowcaseSlide);
 
 export default router;
