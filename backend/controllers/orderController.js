@@ -365,6 +365,52 @@ export const getOrder = async (req, res) => {
   }
 };
 
+// @desc    Get all orders for a customer by email
+// @route   GET /api/orders
+// @access  Public (with email verification)
+export const getOrders = async (req, res) => {
+  try {
+    const { email, page = 1, limit = 10 } = req.query;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required to view orders.",
+      });
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [orders, total] = await Promise.all([
+      Order.find({ customerEmail: email.toLowerCase() })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .populate("items.productId", "title images"),
+      Order.countDocuments({ customerEmail: email.toLowerCase() }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        orders,
+        pagination: {
+          total,
+          totalPages: Math.ceil(total / Number(limit)),
+          currentPage: Number(page),
+          limit: Number(limit),
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get orders error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch orders.",
+    });
+  }
+};
+
 // @desc    Verify Paystack payment
 // @route   POST /api/orders/verify-payment
 // @access  Public (Paystack webhook)
