@@ -14,8 +14,10 @@ export const authLimiter = rateLimit({
 
 // General API rate limiter
 export const apiLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 300, // Limit each IP to 300 requests per hour
+  windowMs: 10 * 60 * 1000, // 10 mins (Users won't wait an hour if blocked)
+  max: 700, // Increased slightly for a smoother launch experience
+  standardHeaders: true, // Returns rate limit info in headers
+  legacyHeaders: false,
   message: {
     success: false,
     message: "Too many requests from this IP",
