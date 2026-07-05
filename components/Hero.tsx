@@ -14,7 +14,7 @@ const Hero = () => {
           transition={{ duration: 2.5, ease: [0.22, 1, 0.36, 1] }}
           className="w-full h-full"
         >
-          <div 
+          <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-80"
             style={{ backgroundImage: `url('/img1.JPG')` }}
           />
@@ -25,35 +25,35 @@ const Hero = () => {
 
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="max-w-5xl mx-auto px-6 text-center text-white z-10">
-          
+
           <div className="overflow-hidden mb-2">
-            <motion.p 
+            <motion.p
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               transition={{ delay: 0.8, duration: 1, ease: [0.22, 1, 0.36, 1] }}
-              className="text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-primary-200"
+              className="text-lg md:text-2xl font-bold tracking-[0.3em] uppercase text-primary-200"
             >
-              Spring / Summer 2024
+              SANTOS RULES
             </motion.p>
           </div>
 
           <div className="overflow-hidden mb-8">
-            <motion.h1 
+            <motion.h1
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               transition={{ delay: 1, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
               className="font-serif text-5xl md:text-7xl lg:text-9xl font-medium tracking-tight leading-none"
             >
-              The New Standard <br /> <span className="italic font-light">of Elegance</span>
+              SWAG ACADEMY
             </motion.h1>
           </div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.6, duration: 1 }}
           >
-            <Link 
+            <Link
               to="/shop"
               className="group relative inline-flex items-center gap-3 px-10 py-4 bg-white text-primary-950 text-sm font-bold uppercase tracking-widest overflow-hidden transition-colors hover:text-white"
             >

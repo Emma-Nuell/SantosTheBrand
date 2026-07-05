@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
 import ProductCard from '../components/ProductCard';
 import GalleryPreview from '../components/GalleryPreview';
-import Loader from '../components/Loader';
 import { PRODUCTS } from '../constants';
 import { Product } from '../types';
 import { ArrowRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import WebsiteLock from '@/components/WebsiteLock';
-import { useEvents, useFeatured, useFeaturedAndTrending, useGallery, useProducts, useShowcase, useTrending, useWebsiteStatus } from '@/hooks/storeHooks';
-import Error404 from './Error404';
+import { useFeaturedAndTrending, useWebsiteStatus } from '@/hooks/storeHooks';
 
 interface HomeProps {
   onAddToCart: (product: Product) => void;
@@ -19,51 +17,26 @@ interface HomeProps {
 }
 
 const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist }) => {
-  // const featuredProducts = PRODUCTS.slice(0, 3);
-  // const trendingProducts = PRODUCTS.slice(3, 6);
-  const gallery = useGallery();
-  const featuredAndTrending = useFeaturedAndTrending()
-  const websiteStatus = useWebsiteStatus()
-  const isReady = featuredAndTrending.isSuccess && gallery.isSuccess;
-  const showcase = useShowcase(isReady);
-  const events = useEvents(isReady);
-  const products = useProducts(isReady)
+  const featuredAndTrending = useFeaturedAndTrending();
+  const websiteStatus = useWebsiteStatus();
 
-    const IsLoading =
-      websiteStatus.isLoading ||
-      featuredAndTrending.isLoading ||
-      gallery.isLoading;
-    const IsError =
-      websiteStatus.error || featuredAndTrending.error || gallery.error;
+  // Always fall back to local data — page renders immediately, API hydrates silently
+  const featuredProducts: Product[] = featuredAndTrending.data?.featured?.products ?? PRODUCTS.slice(0, 3);
+  const trendingProducts: Product[] = featuredAndTrending.data?.trending?.products ?? PRODUCTS.slice(3, 6);
 
-    if (IsLoading) {
-      return (
-        <AnimatePresence mode="wait">
-          <Loader />
-        </AnimatePresence>
-      );
-    }
-    if (IsError) {
-      return <Error404 />;
-    }
-
-    if (websiteStatus.data.isLocked) {
-      return <WebsiteLock />;
-    }
-
-    
-
+  // Only block render if site is explicitly locked
+  if (websiteStatus.data?.isLocked) {
+    return <WebsiteLock />;
+  }
 
   return (
-    
     <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+      >
 
-      {!IsLoading && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-        >
           <Hero />
 
           {/* Featured Collection - Staggered Scroll */}
@@ -71,7 +44,7 @@ const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
             <div className="max-w-[1440px] mx-auto px-6 lg:px-12">
               <div className="flex justify-between items-end mb-16">
                 <div>
-                  <motion.span 
+                  <motion.span
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
@@ -79,7 +52,7 @@ const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
                   >
                     Highlights
                   </motion.span>
-                  <motion.h2 
+                  <motion.h2
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
@@ -90,11 +63,11 @@ const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
                   </motion.h2>
                 </div>
                 <Link to="/shop" className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-primary-600 transition-colors">
-                    View All <ArrowRight className="w-4 h-4" />
+                  View All <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
-              
-              <motion.div 
+
+              <motion.div
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-100px" }}
@@ -103,12 +76,12 @@ const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
                 }}
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16"
               >
-                {featuredAndTrending.data?.featured.products.map((product: Product) => (
+                {featuredProducts.map((product: Product) => (
                   <ProductCard 
-                    key={product._id} 
+                    key={product._id || product.id} 
                     product={product} 
                     onAddToCart={onAddToCart}
-                    isWishlisted={wishlistIds.includes(product.id)}
+                    isWishlisted={wishlistIds.includes(product._id as string || product.id)}
                     onToggleWishlist={onToggleWishlist}
                   />
                 ))}
@@ -121,11 +94,11 @@ const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
           {/* Cinematic Quote */}
           <section className="relative py-40 bg-white overflow-hidden flex items-center justify-center">
             <div className="max-w-4xl px-6 text-center z-10">
-                <p className="text-primary-500 font-bold tracking-widest text-xs uppercase mb-8">Philosophy</p>
-                <h2 className="font-serif text-4xl md:text-6xl text-primary-950 leading-tight mb-8">
-                    "True elegance is not just about being noticed, it’s about being remembered."
-                </h2>
-                <div className="w-24 h-[1px] bg-gray-300 mx-auto" />
+              <p className="text-primary-500 font-bold tracking-widest text-xs uppercase mb-8">Philosophy</p>
+              <h2 className="font-serif text-4xl md:text-6xl text-primary-950 leading-tight mb-8">
+                "True fashion is not just about being noticed, it’s about being remembered."
+              </h2>
+              <div className="w-24 h-[1px] bg-gray-300 mx-auto" />
             </div>
           </section>
 
@@ -135,8 +108,8 @@ const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
               <div className="text-center mb-20">
                 <h2 className="font-serif text-4xl md:text-5xl text-primary-950">Trending Now</h2>
               </div>
-              
-              <motion.div 
+
+              <motion.div
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-100px" }}
@@ -145,12 +118,12 @@ const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
                 }}
                 className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-16"
               >
-                {featuredAndTrending.data?.trending.products.map((product: Product) => (
+                {trendingProducts.map((product: Product) => (
                   <ProductCard 
-                    key={product._id} 
+                    key={product._id || product.id} 
                     product={product} 
                     onAddToCart={onAddToCart} 
-                    isWishlisted={wishlistIds.includes(product.id)}
+                    isWishlisted={wishlistIds.includes(product._id as string || product.id)}
                     onToggleWishlist={onToggleWishlist}
                   />
                 ))}
@@ -163,8 +136,7 @@ const Home: React.FC<HomeProps> = ({ onAddToCart, wishlistIds, onToggleWishlist 
               </div>
             </div>
           </section>
-        </motion.div>
-      )}
+      </motion.div>
     </>
   );
 };
