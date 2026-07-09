@@ -72,7 +72,7 @@ const AboutPage = () => {
                 transition={{ delay: 0.5 }}
                 className="text-xs font-bold uppercase tracking-[0.3em] text-primary-500 mb-6 block"
               >
-                Since 1985
+                Since 2025
               </motion.span>
               <TextReveal className="font-serif text-5xl md:text-7xl text-primary-950 mb-8 leading-tight">
                 The Santos Story
