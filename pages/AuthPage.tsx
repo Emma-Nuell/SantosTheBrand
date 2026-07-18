@@ -192,7 +192,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
 // Helper for Home Link
 const LinkToHome = () => (
   <button 
-    onClick={() => window.location.hash = '#/'}
+    onClick={() => window.location.href = '/'}
     className="group relative"
   >
      <motion.img 

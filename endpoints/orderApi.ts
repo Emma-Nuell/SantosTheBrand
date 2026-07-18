@@ -49,6 +49,10 @@ const OrderAPI = {
             console.error("An error occured", error);
             
         }
+    },
+    verifyPayment: async(reference: string) => {
+        const response = await axios.post("/order/verify-payment", { reference });
+        return response.data;
     }
 }
 

@@ -161,6 +161,9 @@ export interface Order {
   };
   items: OrderItem[];
   totalAmount: number;
+  subtotalAmount?: number;
+  shippingFee?: number;
+  paystackFee?: number;
   orderNumber: string;
   promoCode?: {
     code: string;
@@ -168,7 +171,7 @@ export interface Order {
   };
   paymentMethod: "paystack" | "delivery";
   paymentStatus: "pending" | "completed" | "failed" | "refunded";
-  orderStatus: "processing" | "shipped" | "delivered" | "cancelled";
+  orderStatus: "awaiting_payment" | "processing" | "shipped" | "delivered" | "cancelled";
   paystackReference?: string;
   statusHistory?: {
     status: string;

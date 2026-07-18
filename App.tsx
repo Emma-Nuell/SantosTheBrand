@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  HashRouter as Router,
+  BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
@@ -13,6 +13,7 @@ import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import ProductDetails from "./pages/ProductDetails";
 import Checkout from "./pages/Checkout";
+import PaymentVerify from "./pages/PaymentVerify";
 import Dashboard from "./pages/Dashboard";
 import AuthPage from "./pages/AuthPage";
 import EventsPage from "./pages/EventsPage";
@@ -153,6 +154,7 @@ function AnimatedRoutes({
             path="/checkout"
             element={<Checkout cart={cart} clearCart={handleClearCart} removeFromCart={handleRemoveFromCart} />}
           />
+          <Route path="/order/verify" element={<PaymentVerify clearCart={handleClearCart} />} />
           <Route
             path="/dashboard"
             element={user ? <Dashboard /> : <Navigate to="/auth" replace />}

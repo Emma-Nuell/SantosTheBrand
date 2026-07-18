@@ -30,3 +30,13 @@ export const useValidatePromoCode = () => {
         mutationFn: OrderAPI.validatePromoCode,
     })
 }
+
+export const useVerifyPayment = (reference: string | null) => {
+    return useQuery({
+        queryKey: ["verify-payment", reference],
+        queryFn: () => OrderAPI.verifyPayment(reference!),
+        enabled: !!reference,
+        retry: 2,
+        staleTime: Infinity,
+    });
+};

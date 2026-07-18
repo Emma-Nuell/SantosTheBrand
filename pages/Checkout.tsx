@@ -162,21 +162,11 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) 
         );
         return;
       }
-      if (
-        deliveryMethod === "delivery" &&
-        !selectedAddressId &&
-        addresses.length === 0
-      ) {
-        alert("Please add a delivery address.");
-        return;
-      }
-      if (
-        deliveryMethod === "delivery" &&
-        !selectedAddressId &&
-        addresses.length > 0
-      ) {
-        alert("Please select a delivery address.");
-        return;
+      if (deliveryMethod === "delivery") {
+        if (!newAddressLine || !newAddressCity || !newAddressState || !newAddressCountry || !newAddressPhone) {
+          alert("Please completely fill out the Delivery Address.");
+          return;
+        }
       }
       setCurrentStep(3);
     } else if (currentStep === 3) {
@@ -207,11 +197,10 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) 
         }
 
       } else if (deliveryMethod === "delivery") {
-        const address = addresses.find((address) => address.id === selectedAddressId);
         shippingAddress = {
-          street: address?.address || "",
-          city: address?.city || "",
-          state: address?.state || "",
+          street: newAddressLine,
+          city: newAddressCity,
+          state: newAddressState,
         };
       }
 
@@ -231,6 +220,16 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) 
         const response = await createOrder.mutateAsync(orderData);
 
         if (response.status === 201 || response.status === 200) {
+          const responseData = response.data;
+
+          // If Paystack payment, redirect to Paystack authorization URL
+          if (paymentMethod === 'paystack' && responseData?.data?.payment?.authorization_url) {
+            // Don't clear cart yet — will be cleared on successful verification
+            window.location.href = responseData.data.payment.authorization_url;
+            return;
+          }
+
+          // For delivery payment, show success step
           setIsProcessing(false);
           setCurrentStep(4);
           clearCart();
@@ -596,151 +595,63 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) 
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center mb-4">
+                      <div className="mb-4">
                         <h3 className="text-sm font-bold text-primary-950 uppercase tracking-widest">
-                          Select Delivery Address
+                          Delivery Address
                         </h3>
-                        {!isAddingAddress && (
-                          <button
-                            onClick={() => setIsAddingAddress(true)}
-                            className="text-xs font-bold text-primary-600 hover:text-primary-800 uppercase tracking-widest flex items-center gap-1"
-                          >
-                            <Plus className="w-3.5 h-3.5" /> Add New Address
-                          </button>
-                        )}
                       </div>
 
-                      {/* Address List */}
-                      {addresses.length > 0 && !isAddingAddress && (
-                        <div className="space-y-3 mb-6">
-                          {addresses.map((addr) => (
-                            <button
-                              key={addr.id}
-                              onClick={() => setSelectedAddressId(addr.id)}
-                              className={`w-full p-4 border rounded-sm flex items-start gap-4 transition-all text-left ${selectedAddressId === addr.id ? "border-primary-600 bg-primary-50/50" : "border-gray-200 hover:border-primary-300"}`}
-                            >
-                              <div
-                                className={`w-4 h-4 mt-1 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${selectedAddressId === addr.id ? "border-primary-600" : "border-gray-300"}`}
-                              >
-                                {selectedAddressId === addr.id && (
-                                  <div className="w-2 h-2 bg-primary-600 rounded-full" />
-                                )}
-                              </div>
-                              <div className="flex-grow">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="font-bold text-primary-950 text-sm">
-                                    {addr.type}
-                                  </span>
-                                  {selectedAddressId === addr.id && (
-                                    <span className="bg-primary-100 text-primary-800 text-[10px] px-2 py-0.5 rounded font-bold uppercase">
-                                      Selected
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-xs text-slate-600">
-                                  {addr.address}
-                                </p>
-                                <p className="text-xs text-slate-500 mt-0.5">
-                                  {addr.state}, {addr.country}
-                                </p>
-                                <p className="text-xs text-slate-500 mt-1">
-                                  {addr.phone}
-                                </p>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Add Address Form */}
-                      {(isAddingAddress || addresses.length === 0) && (
-                        <div className="bg-slate-50 border border-slate-200 p-5 rounded-sm">
-                          <h4 className="font-bold text-sm text-primary-950 mb-4 uppercase tracking-widest">
-                            New Address Details
-                          </h4>
-
-                          <div className="flex gap-4 mb-4">
-                            <button
-                              onClick={() => setNewAddressType("Home")}
-                              className={`px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-sm border ${newAddressType === "Home" ? "bg-primary-950 text-white border-primary-950" : "bg-white text-slate-600 border-gray-200"}`}
-                            >
-                              Home
-                            </button>
-                            <button
-                              onClick={() => setNewAddressType("Work")}
-                              className={`px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-sm border ${newAddressType === "Work" ? "bg-primary-950 text-white border-primary-950" : "bg-white text-slate-600 border-gray-200"}`}
-                            >
-                              Work
-                            </button>
-                          </div>
-
-                          <div className="space-y-4">
+                      <div className="bg-slate-50 border border-slate-200 p-5 rounded-sm">
+                        <div className="space-y-4">
+                          <input
+                            type="text"
+                            placeholder="Full Street Address"
+                            value={newAddressLine}
+                            onChange={(e) =>
+                              setNewAddressLine(e.target.value)
+                            }
+                            className="p-3 border border-gray-200 rounded-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 w-full outline-none text-sm transition-colors"
+                          />
+                          <input
+                            type="text"
+                            placeholder="City"
+                            value={newAddressCity}
+                            onChange={(e) =>
+                              setNewAddressCity(e.target.value)
+                            }
+                            className="p-3 border border-gray-200 rounded-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 w-full outline-none text-sm transition-colors"
+                          />
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <input
                               type="text"
-                              placeholder="Full Street Address"
-                              value={newAddressLine}
+                              placeholder="State / Province"
+                              value={newAddressState}
                               onChange={(e) =>
-                                setNewAddressLine(e.target.value)
+                                setNewAddressState(e.target.value)
                               }
                               className="p-3 border border-gray-200 rounded-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 w-full outline-none text-sm transition-colors"
                             />
                             <input
                               type="text"
-                              placeholder="City"
-                              value={newAddressCity}
+                              placeholder="Country"
+                              value={newAddressCountry}
                               onChange={(e) =>
-                                setNewAddressCity(e.target.value)
+                                setNewAddressCountry(e.target.value)
                               }
                               className="p-3 border border-gray-200 rounded-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 w-full outline-none text-sm transition-colors"
                             />
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <input
-                                type="text"
-                                placeholder="State / Province"
-                                value={newAddressState}
-                                onChange={(e) =>
-                                  setNewAddressState(e.target.value)
-                                }
-                                className="p-3 border border-gray-200 rounded-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 w-full outline-none text-sm transition-colors"
-                              />
-                              <input
-                                type="text"
-                                placeholder="Country"
-                                value={newAddressCountry}
-                                onChange={(e) =>
-                                  setNewAddressCountry(e.target.value)
-                                }
-                                className="p-3 border border-gray-200 rounded-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 w-full outline-none text-sm transition-colors"
-                              />
-                            </div>
-                            <input
-                              type="tel"
-                              placeholder="Contact Phone Number"
-                              value={newAddressPhone}
-                              onChange={(e) =>
-                                setNewAddressPhone(e.target.value)
-                              }
-                              className="p-3 border border-gray-200 rounded-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 w-full outline-none text-sm transition-colors"
-                            />
-                            <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                              <button
-                                onClick={handleAddAddress}
-                                className="bg-primary-950 text-white px-6 py-3 text-xs font-bold uppercase tracking-widest rounded-sm hover:bg-primary-800 transition-colors flex-grow"
-                              >
-                                Save Address
-                              </button>
-                              {addresses.length > 0 && (
-                                <button
-                                  onClick={() => setIsAddingAddress(false)}
-                                  className="bg-white text-slate-600 border border-gray-200 px-6 py-3 text-xs font-bold uppercase tracking-widest rounded-sm hover:bg-gray-50 transition-colors"
-                                >
-                                  Cancel
-                                </button>
-                              )}
-                            </div>
                           </div>
+                          <input
+                            type="tel"
+                            placeholder="Contact Phone Number"
+                            value={newAddressPhone}
+                            onChange={(e) =>
+                              setNewAddressPhone(e.target.value)
+                            }
+                            className="p-3 border border-gray-200 rounded-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 w-full outline-none text-sm transition-colors"
+                          />
                         </div>
-                      )}
+                      </div>
                     </div>
                   )}
 
@@ -850,7 +761,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) 
                   </p>
 
                   <div className="space-y-4">
-                    {/* <button
+                    <button
                       onClick={() => setPaymentMethod('paystack')}
                       className={`w-full p-4 border rounded-sm flex flex-col items-start gap-2 transition-all ${
                         paymentMethod === 'paystack'
@@ -876,7 +787,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) 
                           <p>We do not store your card details. You will be redirected securely to Paystack to complete your transaction.</p>
                         </div>
                       )}
-                    </button> */}
+                    </button>
 
                     <button
                       onClick={() => setPaymentMethod("delivery")}
@@ -943,7 +854,10 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) 
                             : 'bg-[#10b981] hover:bg-[#059669] shadow-[0_4px_14px_0_rgba(16,185,129,0.39)]'
                         }`}
                       >
-                        {isProcessing ? 'Processing Transaction...' : `Pay ₦${total.toLocaleString()}`}
+                        {isProcessing ? 'Processing Transaction...' : `Pay ₦${(paymentMethod === 'paystack'
+                          ? (subtotal + shippingCost) + Math.min(Math.ceil(((2 / 100) * (subtotal + shippingCost) + 100) / 50) * 50, 3000)
+                          : total
+                        ).toLocaleString()}`}
                       </button>
                       {paymentMethod === 'paystack' && (
                         <div className="flex justify-center">
@@ -969,6 +883,8 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) 
                 <input
                   type="text"
                   placeholder="ENTER PROMO CODE"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                   className="w-full bg-slate-50 border border-slate-200 p-4 pl-10 text-xs font-bold tracking-widest outline-none focus:border-primary-400 transition-colors uppercase"
                 />
                 <Ticket className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
@@ -996,9 +912,22 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) 
                       : `₦${shippingCost.toLocaleString()}`}
                   </span>
                 </div>
+                {paymentMethod === 'paystack' && (
+                  <div className="flex justify-between text-slate-600">
+                    <span>
+                      Processing Fee
+                    </span>
+                    <span className="font-medium text-slate-900">
+                      ₦{Math.min(Math.ceil(((2 / 100) * (subtotal + shippingCost) + 100) / 50) * 50, 3000).toLocaleString()}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-primary-950 font-bold text-xl pt-4 border-t border-gray-100 mt-2">
                   <span>Total</span>
-                  <span>₦{total.toLocaleString()}</span>
+                  <span>₦{(paymentMethod === 'paystack'
+                    ? (subtotal + shippingCost) + Math.min(Math.ceil(((2 / 100) * (subtotal + shippingCost) + 100) / 50) * 50, 3000)
+                    : total
+                  ).toLocaleString()}</span>
                 </div>
               </div>
 
