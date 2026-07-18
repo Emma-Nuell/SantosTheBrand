@@ -19,6 +19,7 @@ import promoRoute from "./routes/promoRoute.js";
 import galleryRoute from "./routes/galleryRoutes.js"
 import eventRoute from "./routes/eventRoute.js";
 import showcaseRoute from "./routes/showcaseRoute.js";
+import { paystackWebhook } from "./controllers/orderController.js";
 
 import dns from "node:dns";
 
@@ -36,6 +37,10 @@ const port = process.env.PORT || 4000;
 //middleware
 app.use(cors());
 app.use(apiLimiter);
+
+// Paystack webhook needs raw body for signature verification — mount BEFORE express.json()
+app.post('/order/webhooks/paystack', express.raw({ type: 'application/json' }), paystackWebhook);
+
 app.use(express.json());
 app.use(logger)
 

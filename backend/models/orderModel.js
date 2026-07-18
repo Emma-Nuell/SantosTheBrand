@@ -41,6 +41,20 @@ const orderSchema = new Schema(
         },
       },
     ],
+    subtotalAmount: {
+      type: Number,
+      min: 0,
+    },
+    shippingFee: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    paystackFee: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     totalAmount: {
       type: Number,
       required: true,
@@ -67,7 +81,7 @@ const orderSchema = new Schema(
     },
     orderStatus: {
       type: String,
-      enum: ["processing", "shipped", "delivered", "cancelled"],
+      enum: ["awaiting_payment", "processing", "shipped", "delivered", "cancelled"],
       default: "processing",
     },
     paystackReference: {
@@ -85,7 +99,7 @@ const orderSchema = new Schema(
 
     paymentLogs: [
       {
-        type: String,
+        type: { type: String },
         data: Schema.Types.Mixed,
         timestamp: Date,
       },
@@ -105,5 +119,6 @@ orderSchema.index({ customerEmail: 1, createdAt: -1 });
 orderSchema.index({ orderStatus: 1 });
 orderSchema.index({ paymentStatus: 1 });
 orderSchema.index({ createdAt: -1 });
+orderSchema.index({ paystackReference: 1 }, { sparse: true });
 
 export default model("Order", orderSchema);

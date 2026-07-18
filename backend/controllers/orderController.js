@@ -1,6 +1,8 @@
 import { Order, Product, Settings, PromoCode } from "../models/index.js";
 import { v4 as uuidv4 } from "uuid";
 import crypto from "crypto";
+import paystackService from "../service/paystackService.js";
+import { calculateTotalAmount } from "../utils/paystackFees.js";
 
 // @desc    Create a new order (Guest checkout)
 // @route   POST /api/orders
@@ -59,7 +61,7 @@ export const createOrder = async (req, res) => {
     }
 
     // Calculate total and validate items
-    let totalAmount = 0;
+    let subtotalAmount = 0;
     const validatedItems = [];
     const productUpdates = [];
 
@@ -123,7 +125,7 @@ export const createOrder = async (req, res) => {
           sku: variation.sku || null,
         };
 
-        // Decrement the specific variation's stock using positional operator
+        // Prepare stock decrement (deferred for paystack, immediate for delivery)
         productUpdates.push({
           updateOne: {
             filter: { _id: product._id, "variations._id": variation._id },
@@ -139,7 +141,7 @@ export const createOrder = async (req, res) => {
           });
         }
 
-        // Decrement global stock
+        // Prepare stock decrement
         productUpdates.push({
           updateOne: {
             filter: { _id: product._id },
@@ -150,7 +152,7 @@ export const createOrder = async (req, res) => {
 
       // Calculate item total
       const itemTotal = itemPrice * quantity;
-      totalAmount += itemTotal;
+      subtotalAmount += itemTotal;
 
       // Build validated item
       const orderItem = {
@@ -182,14 +184,13 @@ export const createOrder = async (req, res) => {
       if (promo) {
         // Validate promo code
         promoValidation = promo.validateAndApply(
-          totalAmount,
+          subtotalAmount,
           validatedItems,
           customerEmail,
         );
 
         if (promoValidation.valid) {
           discountAmount = promoValidation.discountAmount;
-          totalAmount -= discountAmount;
 
           // Check per user limit
           if (promo.perUserLimit) {
@@ -214,8 +215,21 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // Round total to 2 decimal places
-    totalAmount = Math.round(totalAmount * 100) / 100;
+    // Calculate shipping fee (matches frontend logic)
+    const shippingFee = 0; // Shipping is handled by frontend/delivery method
+
+    // Calculate base amount (subtotal + shipping - discount)
+    const baseAmount = Math.round((subtotalAmount + shippingFee - discountAmount) * 100) / 100;
+
+    // Calculate fees based on payment method
+    let paystackFee = 0;
+    let totalAmount = baseAmount;
+
+    if (paymentMethod === "paystack") {
+      const feeCalc = calculateTotalAmount(baseAmount);
+      paystackFee = feeCalc.paystackFee;
+      totalAmount = feeCalc.totalAmount;
+    }
 
     // Create order
     const orderData = {
@@ -224,10 +238,13 @@ export const createOrder = async (req, res) => {
       customerPhone: customerPhone.trim(),
       shippingAddress,
       items: validatedItems,
+      subtotalAmount: Math.round(subtotalAmount * 100) / 100,
+      shippingFee,
+      paystackFee,
       totalAmount,
       paymentMethod,
       paymentStatus: "pending",
-      orderStatus: "processing",
+      orderStatus: paymentMethod === "paystack" ? "awaiting_payment" : "processing",
       notes: notes || "",
       orderNumber: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     };
@@ -242,8 +259,8 @@ export const createOrder = async (req, res) => {
       };
     }
 
-    // Update product stock
-    if (productUpdates.length > 0) {
+    // For delivery payment, decrement stock immediately
+    if (paymentMethod === "delivery" && productUpdates.length > 0) {
       await Product.bulkWrite(productUpdates);
     }
 
@@ -258,6 +275,9 @@ export const createOrder = async (req, res) => {
         order: {
           id: order._id,
           orderNumber: order.orderNumber,
+          subtotalAmount: order.subtotalAmount,
+          shippingFee: order.shippingFee,
+          paystackFee: order.paystackFee,
           totalAmount: order.totalAmount,
           paymentMethod: order.paymentMethod,
           paymentStatus: order.paymentStatus,
@@ -267,10 +287,49 @@ export const createOrder = async (req, res) => {
       },
     };
 
-    // If Paystack payment, initiate payment
+    // If Paystack payment, initialize transaction
     if (paymentMethod === "paystack") {
-      const paymentData = await initiatePaystackPayment(order, customerEmail);
-      responseData.data.payment = paymentData;
+      const paystackReference = `PSK-${Date.now()}-${uuidv4().slice(0, 8)}`;
+
+      // Store the reference on the order
+      order.paystackReference = paystackReference;
+      await order.save();
+
+      // Initialize Paystack transaction
+      const paystackResult = await paystackService.initializeTransaction(
+        customerEmail,
+        totalAmount,
+        paystackReference,
+        {
+          orderId: order._id.toString(),
+          orderNumber: order.orderNumber,
+          custom_fields: [
+            {
+              display_name: "Order Number",
+              variable_name: "order_number",
+              value: order.orderNumber,
+            },
+          ],
+        },
+      );
+
+      if (!paystackResult.success) {
+        // Paystack initialization failed — cancel the order
+        order.paymentStatus = "failed";
+        order.orderStatus = "cancelled";
+        await order.save();
+
+        return res.status(502).json({
+          success: false,
+          message: paystackResult.error || "Failed to initialize payment. Please try again.",
+        });
+      }
+
+      responseData.data.payment = {
+        reference: paystackReference,
+        authorization_url: paystackResult.data.authorization_url,
+        access_code: paystackResult.data.access_code,
+      };
     }
 
     // TODO: Send order confirmation email
@@ -295,26 +354,6 @@ export const createOrder = async (req, res) => {
   }
 };
 
-// Helper: Initiate Paystack payment
-// const initiatePaystackPayment = async (order, email) => {
-//
-//
-
-//   const paystackReference = `PSK-${Date.now()}-${uuidv4().slice(0, 8)}`;
-
-//   // Mock Paystack response
-//   return {
-//     reference: paystackReference,
-//     authorizationUrl: `https://paystack.com/pay/${paystackReference}`,
-//     amount: order.totalAmount * 100, // Paystack uses kobo (100 kobo = 1 NGN)
-//     currency: 'NGN',
-//     email: email,
-//     metadata: {
-//       orderId: order._id.toString(),
-//       orderNumber: order.orderNumber
-//     }
-//   };
-// };
 
 // @desc    Get order by ID or order number
 // @route   GET /api/orders/:identifier
@@ -411,12 +450,12 @@ export const getOrders = async (req, res) => {
   }
 };
 
-// @desc    Verify Paystack payment
+// @desc    Verify Paystack payment (frontend calls this after redirect)
 // @route   POST /api/orders/verify-payment
-// @access  Public (Paystack webhook)
+// @access  Public
 export const verifyPayment = async (req, res) => {
   try {
-    const { reference, status, metadata } = req.body;
+    const { reference } = req.body;
 
     if (!reference) {
       return res.status(400).json({
@@ -425,14 +464,7 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    // const signature = req.headers['x-paystack-signature'];
-    // const isValid = verifyPaystackSignature(signature, req.body);
-
-    // if (!isValid) {
-    //   return res.status(401).json({ success: false, message: 'Invalid signature' });
-    // }
-
-    // Find order by Paystack reference (you'd store this when initiating payment)
+    // Find order by Paystack reference
     const order = await Order.findOne({
       paystackReference: reference,
     });
@@ -444,34 +476,109 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    // Update payment status based on Paystack response
-    let paymentStatus = "failed";
-    let orderStatus = order.orderStatus;
-
-    if (status === "success") {
-      paymentStatus = "completed";
-      orderStatus = "processing";
-    } else if (status === "failed") {
-      paymentStatus = "failed";
-      orderStatus = "cancelled";
+    // Idempotency: if already completed, just return success
+    if (order.paymentStatus === "completed") {
+      return res.status(200).json({
+        success: true,
+        message: "Payment already verified.",
+        data: {
+          orderId: order._id,
+          orderNumber: order.orderNumber,
+          paymentStatus: order.paymentStatus,
+          orderStatus: order.orderStatus,
+        },
+      });
     }
 
-    order.paymentStatus = paymentStatus;
-    order.orderStatus = orderStatus;
-    await order.save();
+    // Call Paystack API to verify the transaction
+    const verifyResult = await paystackService.verifyTransaction(reference);
 
-    // TODO: Send payment confirmation email
+    if (!verifyResult.success) {
+      return res.status(502).json({
+        success: false,
+        message: verifyResult.error || "Could not verify payment with Paystack.",
+      });
+    }
 
-    res.status(200).json({
-      success: true,
-      message: `Payment ${paymentStatus}.`,
-      data: {
-        orderId: order._id,
-        orderNumber: order.orderNumber,
-        paymentStatus,
-        orderStatus,
-      },
-    });
+    const paystackData = verifyResult.data;
+
+    // Check if payment was successful
+    if (paystackData.status === "success") {
+      // Verify amount matches (Paystack returns amount in kobo)
+      const expectedKobo = Math.round(order.totalAmount * 100);
+      if (paystackData.amount !== expectedKobo) {
+        console.error(
+          `Amount mismatch for order ${order.orderNumber}: expected ${expectedKobo}, got ${paystackData.amount}`,
+        );
+        order.paymentStatus = "failed";
+        order.orderStatus = "cancelled";
+        order.$push = {
+          paymentLogs: {
+            type: "amount_mismatch",
+            data: { expected: expectedKobo, received: paystackData.amount },
+            timestamp: new Date(),
+          },
+        };
+        await order.save();
+
+        return res.status(400).json({
+          success: false,
+          message: "Payment amount does not match order total.",
+        });
+      }
+
+      // Payment verified — update order and decrement stock
+      order.paymentStatus = "completed";
+      order.orderStatus = "processing";
+      order.paymentLogs.push({
+        type: "charge_success_verified",
+        data: {
+          reference: paystackData.reference,
+          amount: paystackData.amount,
+          channel: paystackData.channel,
+          paid_at: paystackData.paid_at,
+        },
+        timestamp: new Date(),
+      });
+      await order.save();
+
+      // Decrement stock now that payment is confirmed
+      await decrementStockForOrder(order);
+
+      // TODO: Send payment confirmation email
+
+      return res.status(200).json({
+        success: true,
+        message: "Payment verified successfully.",
+        data: {
+          orderId: order._id,
+          orderNumber: order.orderNumber,
+          paymentStatus: "completed",
+          orderStatus: "processing",
+        },
+      });
+    } else {
+      // Payment failed or pending
+      order.paymentStatus = "failed";
+      order.orderStatus = "cancelled";
+      order.paymentLogs.push({
+        type: "charge_failed_verified",
+        data: paystackData,
+        timestamp: new Date(),
+      });
+      await order.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Payment was not successful.",
+        data: {
+          orderId: order._id,
+          orderNumber: order.orderNumber,
+          paymentStatus: "failed",
+          orderStatus: "cancelled",
+        },
+      });
+    }
   } catch (error) {
     console.error("Verify payment error:", error);
     res.status(500).json({
@@ -486,8 +593,7 @@ export const verifyPayment = async (req, res) => {
 // @access  Public (Paystack calls this)
 export const paystackWebhook = async (req, res) => {
   try {
-    // Verify webhook signature
-    const secret = process.env.PAYSTACK_SECRET_KEY;
+    // Verify webhook signature using raw body
     const signature = req.headers["x-paystack-signature"];
 
     if (!signature) {
@@ -496,19 +602,17 @@ export const paystackWebhook = async (req, res) => {
         .json({ success: false, message: "No signature provided" });
     }
 
-    // Verify signature (simplified - use proper verification in production)
-    const hash = crypto
-      .createHmac("sha512", secret)
-      .update(JSON.stringify(req.body))
-      .digest("hex");
+    // req.body is raw Buffer when using express.raw()
+    const rawBody = req.body.toString("utf8");
+    const isValid = paystackService.verifyWebhookSignature(signature, rawBody);
 
-    if (hash !== signature) {
+    if (!isValid) {
       return res
         .status(401)
         .json({ success: false, message: "Invalid signature" });
     }
 
-    const event = req.body;
+    const event = JSON.parse(rawBody);
 
     // Handle different Paystack events
     switch (event.event) {
@@ -532,63 +636,115 @@ export const paystackWebhook = async (req, res) => {
     res.status(200).json({ success: true, message: "Webhook received" });
   } catch (error) {
     console.error("Paystack webhook error:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Webhook processing failed" });
+    // Still return 200 so Paystack doesn't retry
+    res.status(200).json({ success: true, message: "Webhook received" });
   }
 };
 
-// Handle successful charge
+// Helper: Decrement stock for a confirmed order
+const decrementStockForOrder = async (order) => {
+  try {
+    const productUpdates = [];
+
+    for (const item of order.items) {
+      const product = await Product.findById(item.productId);
+      if (!product) continue;
+
+      if (item.variation && product.hasVariations) {
+        // Find matching variation
+        const variation = product.variations.find(
+          (v) =>
+            (!item.variation.color || v.color?.name === item.variation.color) &&
+            (!item.variation.size || v.size === item.variation.size),
+        );
+
+        if (variation) {
+          productUpdates.push({
+            updateOne: {
+              filter: { _id: product._id, "variations._id": variation._id },
+              update: { $inc: { "variations.$.stock": -item.quantity } },
+            },
+          });
+        }
+      } else {
+        productUpdates.push({
+          updateOne: {
+            filter: { _id: product._id },
+            update: { $inc: { stock: -item.quantity } },
+          },
+        });
+      }
+    }
+
+    if (productUpdates.length > 0) {
+      await Product.bulkWrite(productUpdates);
+    }
+  } catch (error) {
+    console.error("Decrement stock error:", error);
+  }
+};
+
+// Handle successful charge (webhook)
 const handleSuccessfulCharge = async (chargeData) => {
   try {
-    const order = await Order.findOneAndUpdate(
-      { paystackReference: chargeData.reference },
-      {
-        paymentStatus: "completed",
-        orderStatus: "processing",
-        $push: {
-          paymentLogs: {
-            type: "charge_success",
-            data: chargeData,
-            timestamp: new Date(),
-          },
-        },
-      },
-      { new: true },
-    );
+    const order = await Order.findOne({ paystackReference: chargeData.reference });
 
-    if (order) {
-      console.log(`Payment completed for order ${order.orderNumber}`);
-      // TODO: Send payment confirmation email
+    if (!order) {
+      console.error(`Webhook: No order found for reference ${chargeData.reference}`);
+      return;
     }
+
+    // Idempotency: skip if already completed
+    if (order.paymentStatus === "completed") {
+      console.log(`Webhook: Order ${order.orderNumber} already completed, skipping.`);
+      return;
+    }
+
+    order.paymentStatus = "completed";
+    order.orderStatus = "processing";
+    order.paymentLogs.push({
+      type: "webhook_charge_success",
+      data: {
+        reference: chargeData.reference,
+        amount: chargeData.amount,
+        channel: chargeData.channel,
+        paid_at: chargeData.paid_at,
+      },
+      timestamp: new Date(),
+    });
+    await order.save();
+
+    // Decrement stock
+    await decrementStockForOrder(order);
+
+    console.log(`Webhook: Payment completed for order ${order.orderNumber}`);
+    // TODO: Send payment confirmation email
   } catch (error) {
     console.error("Handle successful charge error:", error);
   }
 };
 
-// Handle failed charge
+// Handle failed charge (webhook)
 const handleFailedCharge = async (chargeData) => {
   try {
-    const order = await Order.findOneAndUpdate(
-      { paystackReference: chargeData.reference },
-      {
-        paymentStatus: "failed",
-        orderStatus: "cancelled",
-        $push: {
-          paymentLogs: {
-            type: "charge_failed",
-            data: chargeData,
-            timestamp: new Date(),
-          },
-        },
-      },
-      { new: true },
-    );
+    const order = await Order.findOne({ paystackReference: chargeData.reference });
 
-    if (order) {
-      console.log(`Payment failed for order ${order.orderNumber}`);
-      // TODO: Send payment failure email
-    }
+    if (!order) return;
+
+    // Idempotency: skip if already completed (don't reverse a successful payment)
+    if (order.paymentStatus === "completed") return;
+
+    order.paymentStatus = "failed";
+    order.orderStatus = "cancelled";
+    order.paymentLogs.push({
+      type: "webhook_charge_failed",
+      data: chargeData,
+      timestamp: new Date(),
+    });
+    await order.save();
+
+    console.log(`Webhook: Payment failed for order ${order.orderNumber}`);
+    // TODO: Send payment failure email
   } catch (error) {
     console.error("Handle failed charge error:", error);
   }

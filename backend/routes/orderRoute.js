@@ -3,7 +3,6 @@ const router = express.Router();
 import {
   createOrder,
   verifyPayment,
-  paystackWebhook,
   getAllOrders,
   updateOrderStatus,
   updatePaymentStatus,
@@ -21,8 +20,7 @@ router.get("/", getOrders);
 router.get("/:identifier", getOrder);
 router.post("/verify-payment", verifyPayment);
 
-// Paystack webhook (no auth needed)
-router.post("/webhooks/paystack", paystackWebhook);
+// Paystack webhook is mounted in index.js with express.raw() middleware
 
 // Admin routes
 router.use("/admin", authenticateAdmin);

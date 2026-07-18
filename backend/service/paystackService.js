@@ -1,9 +1,20 @@
 import axios from "axios";
+import crypto from "crypto";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 class PaystackService {
   constructor() {
-    this.secretKey = process.env.PAYSTACK_SECRET_KEY;
-    this.publicKey = process.env.PAYSTACK_PUBLIC_KEY;
+    const isProd = process.env.NODE_ENV === "production";
+    
+    this.secretKey = isProd 
+      ? process.env.PAYSTACK_SECRET_KEY 
+      : (process.env.PAYSTACK_TEST_SECRET_KEY || process.env.PAYSTACK_SECRET_KEY);
+      
+    this.publicKey = isProd 
+      ? process.env.PAYSTACK_PUBLIC_KEY 
+      : (process.env.PAYSTACK_TEST_PUBLIC_KEY || process.env.PAYSTACK_PUBLIC_KEY);
     this.baseUrl = "https://api.paystack.co";
 
     this.axiosInstance = axios.create({
@@ -122,11 +133,10 @@ class PaystackService {
   }
 
   // Verify webhook signature
-  verifyWebhookSignature(signature, body) {
-    const crypto = require("crypto");
+  verifyWebhookSignature(signature, rawBody) {
     const hash = crypto
       .createHmac("sha512", this.secretKey)
-      .update(JSON.stringify(body))
+      .update(rawBody)
       .digest("hex");
 
     return hash === signature;
