@@ -59,6 +59,22 @@ const steps = [
   { id: 4, label: "Complete" },
 ];
 
+const PICKUP_LOCATIONS = [
+  { id: "afe-babalola", name: "Afe Babalola University", price: 5000, address: "Afe Babalola University, Ado-Ekiti", city: "Ado-Ekiti", state: "Ekiti" },
+  { id: "leadcity", name: "Leadcity University", price: 4000, address: "Leadcity University, Ibadan", city: "Ibadan", state: "Oyo" },
+  { id: "bowen", name: "Bowen University", price: 4000, address: "Bowen University, Iwo", city: "Iwo", state: "Osun" },
+  { id: "covenant", name: "Covenant University", price: 4000, address: "Covenant University, Ota", city: "Ota", state: "Ogun" },
+  { id: "babcock", name: "Babcock University", price: 4000, address: "Babcock University, Ilishan-Remo", city: "Ilishan-Remo", state: "Ogun" },
+  { id: "pau", name: "Pan-Atlantic University", price: 6000, address: "Pan-Atlantic University, Lekki", city: "Lagos", state: "Lagos" },
+  { id: "ibadan", name: "Ibadan (Oyo State)", price: 4000, address: "Ibadan Pickup Station", city: "Ibadan", state: "Oyo" },
+  { id: "lagos", name: "Lagos State", price: 5000, address: "Lagos Pickup Station", city: "Lagos", state: "Lagos" },
+  { id: "abuja", name: "Abuja (FCT)", price: 6000, address: "Abuja Pickup Station", city: "Abuja", state: "FCT" },
+  { id: "ogun", name: "Ogun State", price: 4000, address: "Ogun Pickup Station", city: "Abeokuta", state: "Ogun" },
+  { id: "ekiti", name: "Ekiti State", price: 2000, address: "Ekiti Pickup Station", city: "Ado-Ekiti", state: "Ekiti" },
+  { id: "osun", name: "Osun State", price: 4000, address: "Osun Pickup Station", city: "Osogbo", state: "Osun" },
+  { id: "warri", name: "Warri (Delta State)", price: 5000, address: "Warri Pickup Station", city: "Warri", state: "Delta" },
+];
+
 const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) => {
   const createOrder = useCreateOrder();
   const navigate = useNavigate();
@@ -105,9 +121,10 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) 
   );
 
   // Calculate dynamic shipping
+  const selectedPickupLocation = PICKUP_LOCATIONS.find((loc) => loc.id === selectedPickup);
   let shippingCost = 0;
-  if (deliveryMethod === "pickup") {
-    shippingCost = 10; // e.g. $10 or N4,000 equivalent
+  if (deliveryMethod === "pickup" && selectedPickupLocation) {
+    shippingCost = selectedPickupLocation.price;
   } else if (deliveryMethod === "delivery" && selectedAddressId) {
     shippingCost = 25; // standard third party
   }
@@ -189,11 +206,11 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) 
         city: "",
         state: "",
       }
-      if (deliveryMethod === "pickup") {
+      if (deliveryMethod === "pickup" && selectedPickupLocation) {
         shippingAddress = {
-          street: "Afe Babalola University, Ado-Ekiti",
-          city: "Ado-Ekiti",
-          state: "Ekiti",
+          street: selectedPickupLocation.address,
+          city: selectedPickupLocation.city,
+          state: selectedPickupLocation.state,
         }
 
       } else if (deliveryMethod === "delivery") {
@@ -545,37 +562,37 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) 
                       <h3 className="text-sm font-bold text-primary-950 uppercase tracking-widest mb-4">
                         Select Pickup Station
                       </h3>
-                      <button
-                        onClick={() => {
-                          (setSelectedPickup("afe-babalola"));
-                        }}
-                        className={`w-full p-4 border rounded-sm flex items-start gap-4 transition-all text-left ${selectedPickup === "afe-babalola" ? "border-primary-600 bg-primary-50/50" : "border-gray-200"}`}
-                      >
-                        <div
-                          className={`w-4 h-4 mt-1 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${selectedPickup === "afe-babalola" ? "border-primary-600" : "border-gray-300"}`}
-                        >
-                          {selectedPickup === "afe-babalola" && (
-                            <div className="w-2 h-2 bg-primary-600 rounded-full" />
-                          )}
-                        </div>
-                        <div className="flex-grow">
-                          <div className="flex justify-between items-start">
-                            <span className="font-bold text-primary-950 uppercase tracking-widest text-sm text-[13px]">
-                              Afe Babalola University
-                            </span>
-                            <span className="font-bold text-primary-600 text-sm">
-                              ₦10.00
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-500 mt-2 flex items-start gap-1">
-                            <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                            Afe Babalola University, Ado-Ekiti, Ekiti state
-                          </p>
-                          <p className="text-[11px] text-slate-400 mt-1 ml-4.5 font-medium tracking-wide">
-                            2ND and 4TH week Saturdays: 2PM-5PM
-                          </p>
-                        </div>
-                      </button>
+                      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                        {PICKUP_LOCATIONS.map((location) => (
+                          <button
+                            key={location.id}
+                            onClick={() => setSelectedPickup(location.id)}
+                            className={`w-full p-4 border rounded-sm flex items-start gap-4 transition-all text-left ${selectedPickup === location.id ? "border-primary-600 bg-primary-50/50" : "border-gray-200 hover:border-primary-300"}`}
+                          >
+                            <div
+                              className={`w-4 h-4 mt-1 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${selectedPickup === location.id ? "border-primary-600" : "border-gray-300"}`}
+                            >
+                              {selectedPickup === location.id && (
+                                <div className="w-2 h-2 bg-primary-600 rounded-full" />
+                              )}
+                            </div>
+                            <div className="flex-grow">
+                              <div className="flex justify-between items-start">
+                                <span className="font-bold text-primary-950 uppercase tracking-widest text-sm text-[13px]">
+                                  {location.name}
+                                </span>
+                                <span className="font-bold text-primary-600 text-sm">
+                                  ₦{location.price.toLocaleString()}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-500 mt-2 flex items-start gap-1">
+                                <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                                {location.address}, {location.state} State
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
 
@@ -789,7 +806,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) 
                       )}
                     </button>
 
-                    <button
+                    {/* <button
                       onClick={() => setPaymentMethod("delivery")}
                       className={`w-full p-4 border rounded-sm flex flex-col items-start gap-2 transition-all ${paymentMethod === "delivery" ? "border-primary-600 bg-primary-50/50" : "border-gray-200 hover:border-primary-300"}`}
                     >
@@ -808,13 +825,13 @@ const Checkout: React.FC<CheckoutProps> = ({ cart, clearCart, removeFromCart }) 
                       <p className="text-xs text-slate-500 text-left">
                         Pay physically when the order is delivered.
                       </p>
-                      {/* {paymentMethod === 'delivery' && (
+                      {paymentMethod === 'delivery' && (
                         <div className="mt-3 w-full bg-amber-50 border border-amber-100 p-3 rounded-sm text-xs text-amber-800 flex items-start gap-2">
                           <Info className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                           <p>Please ensure you have the exact requested amount in cash on arrival. You MUST be present to receive the order.</p>
                         </div>
-                      )} */}
-                    </button>
+                      )}
+                    </button> */}
 
                     {/* <button
                       onClick={() => setPaymentMethod('transfer_on_delivery')}
