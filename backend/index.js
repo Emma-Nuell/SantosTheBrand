@@ -36,6 +36,7 @@ const port = process.env.PORT || 4000;
 
 //middleware
 app.use(cors());
+app.set("trust proxy", 1);
 app.use(apiLimiter);
 
 // Paystack webhook needs raw body for signature verification — mount BEFORE express.json()

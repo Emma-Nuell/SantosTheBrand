@@ -119,6 +119,5 @@ orderSchema.index({ customerEmail: 1, createdAt: -1 });
 orderSchema.index({ orderStatus: 1 });
 orderSchema.index({ paymentStatus: 1 });
 orderSchema.index({ createdAt: -1 });
-orderSchema.index({ paystackReference: 1 }, { sparse: true });
 
 export default model("Order", orderSchema);

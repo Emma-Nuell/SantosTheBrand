@@ -192,7 +192,7 @@ export const createProduct = async (req, res) => {
         })),
         availableColors,
         availableSizes: Array.from(availableSizes),
-        stock: 0, // Global stock is 0 when using variations
+        stock: variations.reduce((total, v) => total + (Number(v.stock) || 0), 0),
         attributes,
         tags,
         featured,
@@ -285,6 +285,7 @@ export const updateProduct = async (req, res) => {
 
       updateData.availableColors = availableColors;
       updateData.availableSizes = Array.from(availableSizes);
+      updateData.stock = updateData.variations.reduce((total, v) => total + (Number(v.stock) || 0), 0);
     }
 
     // Validate price if provided
@@ -378,6 +379,7 @@ export const updateVariationStock = async (req, res) => {
     }
 
     variation.stock = stock;
+    product.stock = product.variations.reduce((total, v) => total + (Number(v.stock) || 0), 0);
     await product.save();
 
     res.status(200).json({
@@ -440,6 +442,8 @@ export const bulkUpdateVariationStock = async (req, res) => {
         variation.stock = update.stock;
       }
     });
+
+    product.stock = product.variations.reduce((total, v) => total + (Number(v.stock) || 0), 0);
 
     await product.save();
 
