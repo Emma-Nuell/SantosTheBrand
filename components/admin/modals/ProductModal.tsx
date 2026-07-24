@@ -85,6 +85,12 @@ const ProductModal: React.FC<ProductModalProps> = ({
       // Upload images to Cloudinary
       const { imageUrls, hoverImageUrl } = await uploadAllImages();
 
+      if (imageUrls.length === 0) {
+        alert("At least one image is required. Upload might have failed.");
+        setIsUploading(false);
+        return;
+      }
+
       const productData = {
         title: formData.title || formData.name,
         basePrice: Number(formData.basePrice) || Number(formData.price) || 0,
@@ -93,6 +99,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
         description: formData.description || "",
         category: formData.category || "",
         hasVariations: formData.hasVariations || false,
+        variations: formData.variations || [],
         stock: Number(formData.stock) || 0,
         attributes: formData.attributes || {},
         tags: formData.tags || [],
@@ -106,8 +113,10 @@ const ProductModal: React.FC<ProductModalProps> = ({
           productId: editingProduct._id,
           productData,
         });
+        alert("Product updated successfully!");
       } else {
         await createProduct.mutateAsync(productData);
+        alert("Product created successfully!");
       }
 
       // Reset and close
@@ -182,10 +191,17 @@ const ProductModal: React.FC<ProductModalProps> = ({
                 <FormInput
                   label="Global Stock"
                   type="number"
-                  value={formData.stock || 0}
-                  onChange={(v: string) =>
-                    setFormData({ ...formData, stock: Number(v) })
+                  value={
+                    formData.hasVariations && formData.variations
+                      ? formData.variations.reduce((sum: number, v: any) => sum + (Number(v.stock) || 0), 0)
+                      : (formData.stock || 0)
                   }
+                  onChange={(v: string) => {
+                    if (!formData.hasVariations) {
+                      setFormData({ ...formData, stock: Number(v) });
+                    }
+                  }}
+                  disabled={formData.hasVariations}
                 />
               </div>
             </div>
@@ -246,6 +262,33 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     </div>
                   </div>
                 )}
+
+              {/* New images preview (files selected for upload) */}
+              {images.length > 0 && (
+                <div className="space-y-1 mt-4">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                    New Images to Upload
+                  </label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {images.map((img) => (
+                      <div key={img.id} className="relative group">
+                        <img
+                          src={img.preview}
+                          alt="New preview"
+                          className="w-16 h-20 object-cover rounded-sm border border-slate-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setImages((prev) => prev.filter((i) => i.id !== img.id))}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Description */}

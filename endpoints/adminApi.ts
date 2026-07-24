@@ -6,7 +6,7 @@ const AdminAPI = {
             const response = await axios.get("/admin/users");
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -15,7 +15,7 @@ const AdminAPI = {
             const response = await axios.get(`/admin/users/${userId}`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -24,7 +24,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/users/${userId}`, userData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -33,7 +33,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/users/${userId}/delete`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -42,7 +42,7 @@ const AdminAPI = {
             const response = await axios.get("/order/admin/orders");
             return response.data.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -51,7 +51,7 @@ const AdminAPI = {
             const response = await axios.get(`/order/admin/orders/${orderId}`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -60,7 +60,7 @@ const AdminAPI = {
             const response = await axios.put(`/order/admin/orders/${orderId}/status`, orderData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -69,7 +69,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/orders/${orderId}/delete`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -78,7 +78,7 @@ const AdminAPI = {
             const response = await axios.get("/product");
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -87,7 +87,7 @@ const AdminAPI = {
             const response = await axios.get(`/admin/products/${productId}`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -96,7 +96,7 @@ const AdminAPI = {
             const response = await axios.post("/product/admin/create", productData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -105,7 +105,7 @@ const AdminAPI = {
             const response = await axios.put(`/product/admin/${productId}`, productData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -114,7 +114,7 @@ const AdminAPI = {
             const response = await axios.delete(`/product/admin/${productId}`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -123,7 +123,7 @@ const AdminAPI = {
             const response = await axios.put(`/product/admin/${productId}/feature`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -132,7 +132,7 @@ const AdminAPI = {
             const response = await axios.put(`/product/admin/${productId}/trend`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -141,7 +141,7 @@ const AdminAPI = {
             const response = await axios.get("/admin/reviews");
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -150,7 +150,7 @@ const AdminAPI = {
             const response = await axios.get(`/admin/reviews/${reviewId}`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -159,7 +159,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/reviews/${reviewId}`, reviewData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -168,7 +168,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/reviews/${reviewId}/delete`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -177,7 +177,7 @@ const AdminAPI = {
             const response = await axios.get("/admin/categories");
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -186,7 +186,7 @@ const AdminAPI = {
             const response = await axios.get(`/admin/categories/${categoryId}`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -195,7 +195,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/categories/${categoryId}`, categoryData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -204,7 +204,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/categories/${categoryId}/delete`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -213,7 +213,7 @@ const AdminAPI = {
             const response = await axios.get("/admin/tags");
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -222,7 +222,7 @@ const AdminAPI = {
             const response = await axios.get(`/admin/tags/${tagId}`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -231,7 +231,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/tags/${tagId}`, tagData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -240,7 +240,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/tags/${tagId}/delete`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -249,7 +249,7 @@ const AdminAPI = {
             const response = await axios.get("/admin/images");
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -258,7 +258,7 @@ const AdminAPI = {
             const response = await axios.get(`/admin/images/${imageId}`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -267,7 +267,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/images/${imageId}`, imageData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -276,7 +276,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/images/${imageId}/delete`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -285,7 +285,7 @@ const AdminAPI = {
             const response = await axios.get("/admin/featured");
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -294,7 +294,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/featured/${featuredId}`, featuredData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -303,7 +303,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/featured/${featuredId}/delete`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -312,7 +312,7 @@ const AdminAPI = {
             const response = await axios.get("/admin/trending");
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -321,7 +321,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/trending/${trendingId}`, trendingData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -330,7 +330,7 @@ const AdminAPI = {
             const response = await axios.post(`/admin/trending/${trendingId}/delete`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -339,7 +339,7 @@ const AdminAPI = {
             const response = await axios.post("/gallery/admin/create", galleryData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -348,7 +348,7 @@ const AdminAPI = {
             const response = await axios.put(`/gallery/admin/${galleryId}`, galleryData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -357,7 +357,7 @@ const AdminAPI = {
             const response = await axios.delete(`/gallery/admin/${galleryId}`);
             return response;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -366,7 +366,7 @@ const AdminAPI = {
             const response = await axios.get("/admin/showcase");
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -375,7 +375,7 @@ const AdminAPI = {
             const response = await axios.put(`/showcase/admin/${showcaseId}`, showcaseData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -384,7 +384,7 @@ const AdminAPI = {
             const response = await axios.post("/showcase/admin/create", showcaseData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -393,7 +393,7 @@ const AdminAPI = {
             const response = await axios.delete(`/showcase/admin/${showcaseId}`);
             return response;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -402,7 +402,7 @@ const AdminAPI = {
             const response = await axios.put(`/event/admin/${eventId}`, eventData);
             return response;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -416,7 +416,7 @@ const AdminAPI = {
             const response = await axios.delete(`/event/admin/${eventId}`);
             return response
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -425,7 +425,7 @@ const AdminAPI = {
             const response = await axios.post("/admin/lock");
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -434,7 +434,7 @@ const AdminAPI = {
             const response = await axios.post("/admin/unlock");
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -443,7 +443,7 @@ const AdminAPI = {
             const response = await axios.put("/lock/admin/toggle", lockData);
             return response.data.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -452,7 +452,7 @@ const AdminAPI = {
             const response = await axios.get("/admin/status");
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -461,7 +461,7 @@ const AdminAPI = {
             const response = await axios.post("/promo/admin/create", promoCodeData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -470,7 +470,7 @@ const AdminAPI = {
             const response = await axios.put(`/promo/admin/${promoCodeId}`, promoCodeData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -479,7 +479,7 @@ const AdminAPI = {
             const response = await axios.delete(`/promo/admin/${promoCodeId}`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -488,7 +488,7 @@ const AdminAPI = {
             const response = await axios.get("/promo/admin");
             return response.data.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -497,7 +497,7 @@ const AdminAPI = {
             const response = await axios.get(`/promo/admin/${promoCodeId}`);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     },
@@ -506,7 +506,7 @@ const AdminAPI = {
             const response = await axios.put(`/promo/admin/${promoCodeId}/toggle`, promoCodeData);
             return response.data;
         } catch (error) {
-            console.error("An error occured", error);
+            console.error("An error occured", error); throw error;
             
         }
     }
